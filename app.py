@@ -17,7 +17,7 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # Lista de emociones en orden fijo
-EMOTION_ORDER = ["Neutral", "FELIZ", "SORPRESA", "TRISTE", "ENOJADO", "DISGUSTADO", "MIEDO", "DESPRECIO"]
+EMOTION_ORDER = ["DESPRECIO", "DISGUSTADO", "ENOJADO", "FELIZ", "MIEDO", "Neutral", "SORPRESA", "TRISTE"]
 emotion_index = 0  # Índice global para controlar el orden
 
 # Validación de extensión de archivo
