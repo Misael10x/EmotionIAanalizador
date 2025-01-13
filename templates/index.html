@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EmotionAI - Neon</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: radial-gradient(circle, #0f0c29, #302b63, #24243e);
+            color: #e6edf3;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        h1, h2, p {
+            text-shadow: 0 0 8px #1f6feb, 0 0 16px #1f6feb;
+        }
+
+        .btn-neon {
+            background: linear-gradient(90deg, #1f6feb, #e94057);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .btn-neon:hover {
+            box-shadow: 0 0 15px #1f6feb, 0 0 30px #e94057;
+            transform: scale(1.1);
+        }
+
+        .card {
+            background: rgba(20, 20, 50, 0.9);
+            border: 1px solid #444;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(31, 111, 235, 0.8), 0 0 20px rgba(233, 64, 87, 0.8);
+            padding: 20px;
+        }
+
+        .card h2 {
+            text-shadow: 0 0 10px #e94057, 0 0 20px #1f6feb;
+        }
+
+        .progress-container {
+            width: 100%;
+            background-color: rgba(20, 20, 50, 0.7);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 8px;
+            background: linear-gradient(90deg, #1f6feb, #e94057);
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .loading-spinner {
+            border: 4px solid transparent;
+            border-top: 4px solid #1f6feb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        label {
+            display: block;
+            background: linear-gradient(90deg, #1f6feb, #e94057);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: box-shadow 0.3s;
+        }
+
+        label:hover {
+            box-shadow: 0 0 15px #1f6feb, 0 0 30px #e94057;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <!-- Título principal -->
+        <div class="text-center">
+            <h1 class="text-5xl font-extrabold tracking-tight">Analizador Emotion IA</h1>
+            <p class="text-lg font-light mt-2">Bienvenidos, "Analisis de emociones"</p>
+        </div>
+
+        <!-- Contenedor principal -->
+        <div class="max-w-4xl mx-auto mt-12">
+            <!-- Panel izquierdo -->
+            <div class="w-full px-4 mb-8">
+                <div class="card">
+                    <h2 class="text-2xl font-semibold mb-6">Sube tu imagen</h2>
+                    <form id="uploadForm" class="space-y-6">
+                        <div class="flex items-center justify-center w-full">
+                            <label for="fileInput">Selecciona o arrastra una imagen aquí</label>
+                            <input type="file" name="file" accept=".jpg,.jpeg,.png" id="fileInput" />
+                        </div>
+                        <button type="submit" class="btn-neon w-full">
+                            Analizar Emoción
+                        </button>
+                    </form>
+                    <div id="uploadMessage" class="text-green-500 mt-4 hidden">
+                        Imagen subida correctamente.
+                    </div>
+                    <div id="progressSection" class="hidden mt-6">
+                        <div class="progress-container">
+                            <div id="progress" class="progress"></div>
+                        </div>
+                    </div>
+                    <div id="loading" class="hidden mt-6">
+                        <div class="flex items-center justify-center">
+                            <div class="loading-spinner h-14 w-14"></div>
+                        </div>
+                    </div>
+                    <div id="error" class="hidden mt-6 p-4 bg-red-800 border border-red-600 text-red-200 rounded-lg">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel derecho -->
+            <div class="w-full px-4">
+                <div class="card">
+                    <h2 class="text-2xl font-semibold mb-6">Resultados de la Detección</h2>
+                    <div id="detectionComplete" class="hidden text-green-500 font-bold">
+                        Detección Completa
+                    </div>
+                    <div id="results" class="hidden">
+                        <div class="border border-gray-600 rounded-lg p-6">
+                            <h4 class="font-semibold mb-4">Resultados:</h4>
+                            <div class="relative">
+                                <img id="keypointImage" class="max-w-full h-auto mx-auto" src="" alt="Puntos clave del rostro">
+                                <img id="resultImageSecondary" class="max-w-full h-auto mx-auto mt-4" src="" alt="Transformaciones de la Imagen">
+                            </div>
+                        </div>
+                        <div id="emotionLabel" class="text-lg font-bold text-center mt-4 hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#fileInput').on('change', function (e) {
+                var file = e.target.files[0];
+                if (file) {
+                    var reader = new FileReader();
+                    reader.onload = function (e) {
+                        $('#uploadMessage').removeClass('hidden').text('Imagen cargada correctamente.');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            $('#uploadForm').on('submit', function (e) {
+                e.preventDefault();
+
+                var formData = new FormData(this);
+                $('#loading').removeClass('hidden');
+                $('#progressSection').removeClass('hidden');
+                $('#progress').css('width', '0%');
+                $('#uploadMessage').addClass('hidden');
+
+                $.ajax({
+                    url: '/analyze',
+                    type: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    xhr: function () {
+                        var xhr = new window.XMLHttpRequest();
+                        xhr.upload.addEventListener("progress", function (evt) {
+                            if (evt.lengthComputable) {
+                                var percentComplete = (evt.loaded / evt.total) * 100;
+                                $('#progress').css('width', percentComplete + '%');
+                            }
+                        }, false);
+                        return xhr;
+                    },
+                    success: function (response) {
+                        $('#loading').addClass('hidden');
+                        $('#detectionComplete').removeClass('hidden');
+                        $('#results').removeClass('hidden');
+                        $('#keypointImage').attr('src', 'data:image/png;base64,' + response.keypoint_image);
+                        $('#resultImageSecondary').attr('src', 'data:image/png;base64,' + response.transformations_image);
+                        $('#progress').css('width', '100%');
+
+                        if (response.emotion) {
+                            $('#emotionLabel').text('Emoción Detectada: ' + response.emotion).removeClass('hidden');
+                        }
+                    },
+                    error: function (xhr) {
+                        $('#loading').addClass('hidden');
+                        $('#error').removeClass('hidden').text(xhr.responseJSON?.error || 'Ocurrió un error');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>
